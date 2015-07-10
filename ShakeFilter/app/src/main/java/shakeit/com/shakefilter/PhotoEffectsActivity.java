@@ -46,6 +46,12 @@ import jp.wasabeef.picasso.transformations.gpu.BrightnessFilterTransformation;
 import jp.wasabeef.picasso.transformations.gpu.ContrastFilterTransformation;
 import jp.wasabeef.picasso.transformations.gpu.PixelationFilterTransformation;
 import jp.wasabeef.picasso.transformations.gpu.ToonFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.InvertFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.SepiaFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.KuwaharaFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.SketchFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.SwirlFilterTransformation;
+import jp.wasabeef.picasso.transformations.gpu.VignetteFilterTransformation;
 
 /**
  * Created by camposbrunocampos on 05/07/15.
@@ -70,6 +76,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     private float mAccel; // acceleration apart from gravity
     private float mAccelCurrent; // current acceleration including gravity
     private float mAccelLast; // last acceleration including gravity
+    private static Toast toast;
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 
@@ -102,118 +109,217 @@ public class PhotoEffectsActivity extends ActionBarActivity {
 //                Toast toast = Toast.makeText(getApplicationContext(), "Right shake", Toast.LENGTH_SHORT);
 //                toast.show();
 //            }
+            final String successMessage = " filter applied successfully.";
+            final String errorMessage = "Failure when applying filter";
 
             if (mAccel > 12) {
+                file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+
                 progressBar.setVisibility(View.VISIBLE);
                 Random r = new Random();
-                int i1 = r.nextInt(5);
-                Log.d("PHOTO_EFFECTS_ACTIVITY", "number is = "+ i1);
-                switch (i1){
-
-                    case 1:
+                int randomNumber = r.nextInt(12);
+                Log.d("PHOTO_EFFECTS_ACTIVITY", "number is = "+ randomNumber);
+                switch (randomNumber){
+                // Toon filter
+                    case 0:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
                                 .transform(new ToonFilterTransformation(PhotoEffectsActivity.this))
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        filterApplied();
+                                        filterApplied( "Toon"+successMessage);
                                     }
 
                                     @Override
                                     public void onError() {
                                         progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying filter", Toast.LENGTH_SHORT);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                                         toast.show();
                                     }
                                 });
                         break;
-                    case 2:
+                    // Pixelation filter
+                    case 1:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new PixelationFilterTransformation(PhotoEffectsActivity.this))
+                                .transform(new PixelationFilterTransformation(PhotoEffectsActivity.this, 2))
                                 .into(mImageView,new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        filterApplied();
+                                        filterApplied("Pixelation"+successMessage);
                                     }
 
                                     @Override
                                     public void onError() {
                                         progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying filter", Toast.LENGTH_SHORT);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                                         toast.show();
                                     }
                                 });
                         break;
-                    case 3:
+                    // Contrast filter
+                    case 2:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
                                 .transform(new ContrastFilterTransformation(PhotoEffectsActivity.this))
                                 .into(mImageView, new Callback() {
                         @Override
                         public void onSuccess() {
-                            filterApplied();
+                            filterApplied( "Contrast"+successMessage);
                         }
 
                         @Override
                         public void onError() {
                             progressBar.setVisibility(View.GONE);
-                            Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying filter", Toast.LENGTH_SHORT);
+                            if(toast != null)
+                                toast.cancel();
+                            toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                             toast.show();
                         }
                     });
                         break;
+                    // Kuwahara filter
+                    case 3:
+                        Picasso.with(PhotoEffectsActivity.this).load(file)
+                                .transform(new KuwaharaFilterTransformation(PhotoEffectsActivity.this))
+                                .into(mImageView, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        filterApplied("Kuwahara"+successMessage);
+                                    }
+
+                                    @Override
+                                    public void onError() {
+                                        progressBar.setVisibility(View.GONE);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                });
+                        break;
+                    // Grayscale filter
                     case 4:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new BrightnessFilterTransformation(PhotoEffectsActivity.this))
+                                .transform(new GrayscaleTransformation())
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        filterApplied();
+                                        filterApplied("Grayscale"+successMessage);
                                     }
 
                                     @Override
                                     public void onError() {
                                         progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying filter", Toast.LENGTH_SHORT);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                                         toast.show();
                                     }
                                 });
                         break;
+                    // Sepia filter
                     case 5:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new GrayscaleTransformation())
+                                .transform(new SepiaFilterTransformation(PhotoEffectsActivity.this))
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        filterApplied();
+                                        filterApplied( "Sepia"+successMessage);
                                     }
 
                                     @Override
                                     public void onError() {
                                         progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying GrayscaleTransformation filter", Toast.LENGTH_SHORT);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                                         toast.show();
                                     }
                                 });
                         break;
-                    default:
+                    // Invert filter
+                    case 6:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new GrayscaleTransformation())
+                                .transform(new InvertFilterTransformation(PhotoEffectsActivity.this))
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                       filterApplied();
+                                        filterApplied("Sketch"+successMessage);
                                     }
 
                                     @Override
                                     public void onError() {
                                         progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Failure when applying GrayscaleTransformation filter", Toast.LENGTH_SHORT);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
                                         toast.show();
                                     }
                                 });
                         break;
+                    // Sketch filter
+                    case 7:
+                        Picasso.with(PhotoEffectsActivity.this).load(file)
+                                .transform(new SketchFilterTransformation(PhotoEffectsActivity.this))
+                                .into(mImageView, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                       filterApplied("Sketch"+successMessage);
+                                    }
 
+                                    @Override
+                                    public void onError() {
+                                        progressBar.setVisibility(View.GONE);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                });
+                        break;
+                    // Swirl filter
+                    case 8:
+                        Picasso.with(PhotoEffectsActivity.this).load(file)
+                                .transform(new SwirlFilterTransformation(PhotoEffectsActivity.this))
+                                .into(mImageView, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        filterApplied( "Swirl"+successMessage);
+                                    }
 
+                                    @Override
+                                    public void onError() {
+                                        progressBar.setVisibility(View.GONE);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                });
+                        break;
+                    // Vignette filter
+                    case 9:
+                        Picasso.with(PhotoEffectsActivity.this).load(file)
+                                .transform(new VignetteFilterTransformation(PhotoEffectsActivity.this))
+                                .into(mImageView, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                       filterApplied("Vignette"+successMessage);
+                                    }
+
+                                    @Override
+                                    public void onError() {
+                                        progressBar.setVisibility(View.GONE);
+                                        if(toast != null)
+                                            toast.cancel();
+                                        toast = Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                });
+                        break;
                 }
             }
 
@@ -224,13 +330,17 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         }
     };
 
-    public void filterApplied(){
+    public void filterApplied(String filterName){
         progressBar.setVisibility(View.GONE);
+        bmp = ((BitmapDrawable)mImageView.getDrawable()).getBitmap();
         if(pressed) {
             Log.d("PHOTO_EFFECTS_ACTIVITY", "IS PRESSING SCREEN");
             saveImage(((BitmapDrawable)mImageView.getDrawable()).getBitmap());
         }
-        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
+
+        if(toast != null)
+            toast.cancel();
+        toast = Toast.makeText(getApplicationContext(), filterName, Toast.LENGTH_SHORT);
         toast.show();
     }
 
@@ -320,12 +430,16 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     public void saveImage(Bitmap bit){
         try
         {
+            file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+
             FileOutputStream ostream = new FileOutputStream(file);
             bit.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
             ostream.close();
+            Log.e("PHOTO_EFFECTS_ACTIVITTY","image saved ");
         }
         catch (Exception e)
         {
+            Log.e("PHOTO_EFFECTS_ACTIVITTY","failure when saving image");
             e.printStackTrace();
         }
     }
@@ -387,10 +501,28 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_save:
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-                startActivityForResult(cameraIntent, 101);
-                return true;
+                try
+                {
+                    file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+
+                    FileOutputStream ostream = new FileOutputStream(file);
+                    bmp = ((BitmapDrawable)mImageView.getDrawable()).getBitmap();
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+                    ostream.close();
+                    Log.e("PHOTO_EFFECTS_ACTIVITTY","image saved ");
+                    if(toast!=null){
+                        toast = Toast.makeText(getApplicationContext(), "Arquivo salvo em "+Environment.getExternalStorageDirectory().getPath()+"/image2.jpg", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.e("PHOTO_EFFECTS_ACTIVITTY","failure when saving image");
+                    e.printStackTrace();
+                }
+
+
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
