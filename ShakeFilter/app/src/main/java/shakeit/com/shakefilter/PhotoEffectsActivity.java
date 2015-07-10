@@ -53,9 +53,6 @@ import jp.wasabeef.picasso.transformations.gpu.SketchFilterTransformation;
 import jp.wasabeef.picasso.transformations.gpu.SwirlFilterTransformation;
 import jp.wasabeef.picasso.transformations.gpu.VignetteFilterTransformation;
 
-/**
- * Created by camposbrunocampos on 05/07/15.
- */
 public class PhotoEffectsActivity extends ActionBarActivity {
 
     ImageView mImageView;
@@ -118,7 +115,8 @@ public class PhotoEffectsActivity extends ActionBarActivity {
 
                 progressBar.setVisibility(View.VISIBLE);
                 Random r = new Random();
-                int randomNumber = r.nextInt(12);
+                int randomNumber = r.nextInt(6);
+                randomNumber += r.nextInt(5);
                 Log.d("PHOTO_EFFECTS_ACTIVITY", "number is = "+ randomNumber);
                 switch (randomNumber){
                 // Toon filter
@@ -144,7 +142,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                     // Pixelation filter
                     case 1:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new PixelationFilterTransformation(PhotoEffectsActivity.this, 2))
+                                .transform(new PixelationFilterTransformation(PhotoEffectsActivity.this, r.nextInt(3)+1))
                                 .into(mImageView,new Callback() {
                                     @Override
                                     public void onSuccess() {
@@ -184,7 +182,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                     // Kuwahara filter
                     case 3:
                         Picasso.with(PhotoEffectsActivity.this).load(file)
-                                .transform(new KuwaharaFilterTransformation(PhotoEffectsActivity.this))
+                                .transform(new KuwaharaFilterTransformation(PhotoEffectsActivity.this, r.nextInt(14)+5))
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
@@ -248,7 +246,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        filterApplied("Sketch"+successMessage);
+                                        filterApplied("Invert"+successMessage);
                                     }
 
                                     @Override
@@ -324,7 +322,6 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                 }
             }
 
-
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -366,19 +363,6 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         progressBar = (ProgressBar)findViewById(R.id.progress);
-        button = (Button)findViewById(R.id.button);
-        button.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                invert(bmp);
-                Vibrator vib = (Vibrator) PhotoEffectsActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
-                // Vibrate for 500 milliseconds
-                vib.vibrate(500);
-                mImageView.setImageBitmap(bmp);
-                return true;
-            }
-        });
-
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
@@ -422,9 +406,9 @@ public class PhotoEffectsActivity extends ActionBarActivity {
             fileFiltered.getParentFile().mkdirs();
             fileFiltered.createNewFile();
             FileOutputStream ostream = new FileOutputStream(fileOriginal);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
             FileOutputStream ostream2 = new FileOutputStream(fileFiltered);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream2);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, ostream2);
             ostream.close();
         }
         catch (Exception e)
@@ -440,7 +424,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
             fileFiltered = new File(Environment.getExternalStorageDirectory().getPath()+"/filteredImage.jpg");
 
             FileOutputStream ostream = new FileOutputStream(fileFiltered);
-            bit.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+            bit.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
             ostream.close();
             Log.e("PHOTO_EFFECTS_ACTIVITTY","image saved ");
         }
@@ -459,44 +443,6 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     }
 
 
-
-    public Bitmap invert(Bitmap src) {
-        // image size
-        int width = src.getWidth();
-        int height = src.getHeight();
-        // create output bitmap
-        Bitmap bmOut = Bitmap.createBitmap(width, height, src.getConfig());
-        // color information
-        int A, R, G, B;
-        int pixel;
-        Random r = new Random();
-        int x = r.nextInt(width);
-        int y = r.nextInt(height);
-        // scan through all pixels
-        for(int i = 0; i < 500; i++) {
-//            for(int y = 0; y < height; ++y) {
-                // get pixel color
-                x = r.nextInt(width);
-                y = r.nextInt(height);
-                pixel = src.getPixel(x, y);
-                // get color on each channel
-                A = Color.alpha(pixel);
-                R = Color.red(pixel);
-                G = Color.green(pixel);
-                B = Color.blue(pixel);
-
-                // set new pixel color to output image
-                bmOut.setPixel(x, y, Color.argb(A, 255-R, 255-G, 255-B));
-            }
-//        }
-
-        bmp = src.copy(bmOut.getConfig(), true);
-        Canvas canvasBmp = new Canvas( bmp );
-        canvasBmp.drawBitmap(bmOut,0,0,null);
-        // return final image
-        return bmOut;
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
@@ -513,11 +459,11 @@ public class PhotoEffectsActivity extends ActionBarActivity {
 
                     FileOutputStream ostream = new FileOutputStream(file);
                     bmp = ((BitmapDrawable) mImageView.getDrawable()).getBitmap();
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
                     ostream.close();
                     Log.e("PHOTO_EFFECTS_ACTIVITTY", "image saved ");
                     if (toast != null) {
-                        toast = Toast.makeText(getApplicationContext(), "Arquivo salvo em " + Environment.getExternalStorageDirectory().getPath() + "/image2.jpg", Toast.LENGTH_SHORT);
+                        toast = Toast.makeText(getApplicationContext(), "File saved in " + Environment.getExternalStorageDirectory().getPath() + "/finalImage.jpg", Toast.LENGTH_SHORT);
                         toast.show();
                     }
                 } catch (Exception e) {

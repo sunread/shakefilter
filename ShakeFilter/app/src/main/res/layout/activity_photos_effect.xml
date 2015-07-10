@@ -14,13 +14,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <Button
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:id="@+id/button"
-        android:text="Vibrar"
-        android:layout_width="100dp"
-        android:layout_height="50dp" />
-
 
 </RelativeLayout>
