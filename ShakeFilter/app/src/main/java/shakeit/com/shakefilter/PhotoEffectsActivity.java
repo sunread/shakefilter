@@ -61,7 +61,9 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     ImageView mImageView;
     Drawable drawable;
     ProgressBar progressBar;
-    File file;
+    File fileOriginal;
+    File fileFiltered;
+
     Bitmap bmp;
     Button button;
     Vibrator vib;
@@ -101,19 +103,18 @@ public class PhotoEffectsActivity extends ActionBarActivity {
             float delta = mAccelCurrent - mAccelLast;
             mAccel = mAccel * 0.9f + delta; // perform low-cut filter
 
-
-//            if(xChange >  5){
-//                Toast toast = Toast.makeText(getApplicationContext(), "Left shake", Toast.LENGTH_SHORT);
-//                toast.show();
-//            }else if(xChange < -5){
-//                Toast toast = Toast.makeText(getApplicationContext(), "Right shake", Toast.LENGTH_SHORT);
-//                toast.show();
-//            }
             final String successMessage = " filter applied successfully.";
             final String errorMessage = "Failure when applying filter";
 
             if (mAccel > 12) {
-                file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+                File file;
+                if(pressed){
+                    fileFiltered = new File(Environment.getExternalStorageDirectory().getPath()+"/filteredImage.jpg");
+                    file = fileFiltered;
+                }else{
+                    fileOriginal = new File(Environment.getExternalStorageDirectory().getPath()+"/originalImage.jpg");
+                    file = fileOriginal;
+                }
 
                 progressBar.setVisibility(View.VISIBLE);
                 Random r = new Random();
@@ -392,6 +393,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:
                         pressed = true;
+                        saveImage(((BitmapDrawable) mImageView.getDrawable()).getBitmap());
                         break;
 
                     case MotionEvent.ACTION_MOVE:
@@ -411,13 +413,18 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         mImageView.setImageBitmap(bmp);
 
-        file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+        fileOriginal = new File(Environment.getExternalStorageDirectory().getPath()+"/originalImage.jpg");
+        fileFiltered = new File(Environment.getExternalStorageDirectory().getPath()+"/filteredImage.jpg");
         try
         {
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-            FileOutputStream ostream = new FileOutputStream(file);
+            fileOriginal.getParentFile().mkdirs();
+            fileOriginal.createNewFile();
+            fileFiltered.getParentFile().mkdirs();
+            fileFiltered.createNewFile();
+            FileOutputStream ostream = new FileOutputStream(fileOriginal);
             bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+            FileOutputStream ostream2 = new FileOutputStream(fileFiltered);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream2);
             ostream.close();
         }
         catch (Exception e)
@@ -430,9 +437,9 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     public void saveImage(Bitmap bit){
         try
         {
-            file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+            fileFiltered = new File(Environment.getExternalStorageDirectory().getPath()+"/filteredImage.jpg");
 
-            FileOutputStream ostream = new FileOutputStream(file);
+            FileOutputStream ostream = new FileOutputStream(fileFiltered);
             bit.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
             ostream.close();
             Log.e("PHOTO_EFFECTS_ACTIVITTY","image saved ");
@@ -501,28 +508,23 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_save:
-                try
-                {
-                    file = new File(Environment.getExternalStorageDirectory().getPath()+"/image2.jpg");
+                try {
+                    File file = new File(Environment.getExternalStorageDirectory().getPath() + "/finalImage.jpg");
 
                     FileOutputStream ostream = new FileOutputStream(file);
-                    bmp = ((BitmapDrawable)mImageView.getDrawable()).getBitmap();
+                    bmp = ((BitmapDrawable) mImageView.getDrawable()).getBitmap();
                     bmp.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
                     ostream.close();
-                    Log.e("PHOTO_EFFECTS_ACTIVITTY","image saved ");
-                    if(toast!=null){
-                        toast = Toast.makeText(getApplicationContext(), "Arquivo salvo em "+Environment.getExternalStorageDirectory().getPath()+"/image2.jpg", Toast.LENGTH_SHORT);
+                    Log.e("PHOTO_EFFECTS_ACTIVITTY", "image saved ");
+                    if (toast != null) {
+                        toast = Toast.makeText(getApplicationContext(), "Arquivo salvo em " + Environment.getExternalStorageDirectory().getPath() + "/image2.jpg", Toast.LENGTH_SHORT);
                         toast.show();
                     }
-                }
-                catch (Exception e)
-                {
-                    Log.e("PHOTO_EFFECTS_ACTIVITTY","failure when saving image");
+                } catch (Exception e) {
+                    Log.e("PHOTO_EFFECTS_ACTIVITTY", "failure when saving image");
                     e.printStackTrace();
                 }
-
-
-                break;
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
