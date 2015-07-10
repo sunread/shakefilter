@@ -1,6 +1,7 @@
 package shakeit.com.shakefilter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,12 +13,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -54,6 +60,12 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     Button button;
     Vibrator vib;
 
+    float [] history = new float[2];
+    String [] direction = {"NONE","NONE"};
+
+
+    boolean pressed;
+
     private SensorManager mSensorManager;
     private float mAccel; // acceleration apart from gravity
     private float mAccelCurrent; // current acceleration including gravity
@@ -62,13 +74,35 @@ public class PhotoEffectsActivity extends ActionBarActivity {
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 
         public void onSensorChanged(SensorEvent se) {
+
+
             float x = se.values[0];
             float y = se.values[1];
             float z = se.values[2];
+
+
+
+            float xChange = history[0] - x;
+            float yChange = history[1] - y;
+            history[0] = x;
+            history[1] = y;
+
+
+
             mAccelLast = mAccelCurrent;
             mAccelCurrent = (float) Math.sqrt((double) (x*x + y*y + z*z));
             float delta = mAccelCurrent - mAccelLast;
             mAccel = mAccel * 0.9f + delta; // perform low-cut filter
+
+
+//            if(xChange >  5){
+//                Toast toast = Toast.makeText(getApplicationContext(), "Left shake", Toast.LENGTH_SHORT);
+//                toast.show();
+//            }else if(xChange < -5){
+//                Toast toast = Toast.makeText(getApplicationContext(), "Right shake", Toast.LENGTH_SHORT);
+//                toast.show();
+//            }
+
             if (mAccel > 12) {
                 progressBar.setVisibility(View.VISIBLE);
                 Random r = new Random();
@@ -82,9 +116,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully. ", Toast.LENGTH_SHORT);
-                                        toast.show();
+                                        filterApplied();
                                     }
 
                                     @Override
@@ -101,9 +133,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView,new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
-                                        toast.show();
+                                        filterApplied();
                                     }
 
                                     @Override
@@ -120,9 +150,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                         @Override
                         public void onSuccess() {
-                            progressBar.setVisibility(View.GONE);
-                            Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
-                            toast.show();
+                            filterApplied();
                         }
 
                         @Override
@@ -139,9 +167,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
-                                        toast.show();
+                                        filterApplied();
                                     }
 
                                     @Override
@@ -158,9 +184,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied GrayscaleTransformation successfully.", Toast.LENGTH_SHORT);
-                                        toast.show();
+                                        filterApplied();
                                     }
 
                                     @Override
@@ -177,9 +201,7 @@ public class PhotoEffectsActivity extends ActionBarActivity {
                                 .into(mImageView, new Callback() {
                                     @Override
                                     public void onSuccess() {
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
-                                        toast.show();
+                                       filterApplied();
                                     }
 
                                     @Override
@@ -193,10 +215,6 @@ public class PhotoEffectsActivity extends ActionBarActivity {
 
 
                 }
-
-//                mImageView.setImageDrawable(drawable);
-
-
             }
 
 
@@ -205,6 +223,16 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     };
+
+    public void filterApplied(){
+        progressBar.setVisibility(View.GONE);
+        if(pressed) {
+            Log.d("PHOTO_EFFECTS_ACTIVITY", "IS PRESSING SCREEN");
+            saveImage(((BitmapDrawable)mImageView.getDrawable()).getBitmap());
+        }
+        Toast toast = Toast.makeText(getApplicationContext(), "Filter applied successfully.", Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
     @Override
     protected void onResume() {
@@ -232,6 +260,9 @@ public class PhotoEffectsActivity extends ActionBarActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 invert(bmp);
+                Vibrator vib = (Vibrator) PhotoEffectsActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                vib.vibrate(500);
                 mImageView.setImageBitmap(bmp);
                 return true;
             }
@@ -245,6 +276,27 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         mAccelLast = SensorManager.GRAVITY_EARTH;
 
         mImageView = (ImageView)findViewById(R.id.image_view);
+        mImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        pressed = true;
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        //User is moving around on the screen
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        pressed = false;
+                        break;
+                }
+                return pressed;            }
+        });
+
+
+
         byte[] byteArray = getIntent().getByteArrayExtra("image");
         bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         mImageView.setImageBitmap(bmp);
@@ -265,12 +317,27 @@ public class PhotoEffectsActivity extends ActionBarActivity {
 
     }
 
+    public void saveImage(Bitmap bit){
+        try
+        {
+            FileOutputStream ostream = new FileOutputStream(file);
+            bit.compress(Bitmap.CompressFormat.JPEG, 75, ostream);
+            ostream.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public void putOverlay(Bitmap bitmap, Bitmap overlay, int x , int y) {
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
         canvas.drawPoint(x, y, paint);
         mImageView.setImageBitmap(bitmap);
     }
+
+
 
     public Bitmap invert(Bitmap src) {
         // image size
@@ -308,5 +375,26 @@ public class PhotoEffectsActivity extends ActionBarActivity {
         // return final image
         return bmOut;
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_save:
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+                startActivityForResult(cameraIntent, 101);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 }
 

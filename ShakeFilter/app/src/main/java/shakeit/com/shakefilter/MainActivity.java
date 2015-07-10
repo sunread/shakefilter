@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ public class MainActivity extends ActionBarActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     ImageView mImageView;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
